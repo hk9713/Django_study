@@ -1,12 +1,23 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.utils import timezone
 from django.http import HttpResponseNotAllowed
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from .forms import QuestionForm, AnswerForm
 from .models import Question
 
 def index(request):
+    page = request.GET.get('page', '1')  # 페이지
     question_list = Question.objects.order_by('-create_date')
-    context = {'question_list': question_list}
+    paginator = Paginator(question_list, 10)  # 페이지당 10개씩 보여주기
+    # page_obj = paginator.get_page(page)
+    # context = {'question_list': page_obj}
+    try:
+        pages = paginator.page(page)
+    except PageNotAnInteger:
+        pages = paginator.page(1)
+    except EmptyPage:
+        pages = paginator.page(1)
+    context = {'question_list': pages}
     return render(request, 'pybo/question_list.html', context)
 
 def detail(request, question_id):
